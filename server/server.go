@@ -7,7 +7,8 @@ import (
 	"time"
 	"context"
 
-	proto "github.com/games130/protoMetric"
+	proto "github.com/games130/heplify-server-metric/proto"
+	"github.com/micro/go-plugins/broker/nats"
 	"github.com/negbie/logp"
 	"github.com/sipcapture/heplify-server/cdr"
 	"github.com/sipcapture/heplify-server/config"
@@ -15,6 +16,7 @@ import (
 	"github.com/sipcapture/heplify-server/metric"
 	"github.com/sipcapture/heplify-server/remotelog"
 	"github.com/micro/go-micro"
+	"github.com/micro/go-micro/broker"
 	"github.com/micro/go-log"
 )
 
@@ -38,8 +40,8 @@ type HEPInput struct {
 	usePM     bool
 	useES     bool
 	useLK     bool
-	service   Service
-	pub1	  Publisher
+	service   micro.Service
+	pub1	  micro.Publisher
 }
 
 type HEPStats struct {
@@ -64,14 +66,21 @@ func NewHEPInput() *HEPInput {
 		exitedTLS: make(chan bool),
 		lokiTF:    config.Setting.LokiHEPFilter,
 	}
+
+
+	b := nats.NewBroker(
+		broker.Addrs("172.17.0.3:4222"),
+	)
 	// create a service
 	h.service = micro.NewService(
 		micro.Name("go.micro.cli.metric"),
+		micro.Broker(b),
 	)
 	// parse command line
 	h.service.Init()
 	// create publisher
-	h.pub1 = micro.NewPublisher("heplify.server.metric.1", service.Client())
+	h.pub1 = micro.NewPublisher("heplify.server.metric.1", h.service.Client())
+	
 	
 	if len(config.Setting.CGRAddr) > 2 {
 		h.useCDR = true
@@ -94,6 +103,7 @@ func NewHEPInput() *HEPInput {
 }
 
 func (h *HEPInput) Run() {
+	logp.Info("--------------------------------server---run---------------------------------")
 	for n := 0; n < runtime.NumCPU(); n++ {
 		h.wg.Add(1)
 		go h.hepWorker()
@@ -199,33 +209,38 @@ func (h *HEPInput) hepWorker() {
 			atomic.AddUint64(&h.stats.HEPCount, 1)
 
 			if h.usePM {
+				tStr,_ := hepPkt.Timestamp.MarshalText()
 				ev := &proto.Event{
-					Version: 		hepPkt.Version
-					Protocol:		hepPkt.Protocol
-					SrcIP:			hepPkt.SrcIP
-					DstIP:			hepPkt.DstIP
-					SrcPort:		hepPkt.SrcPort
-					DstPort:		hepPkt.DstPort
-					Tsec:			hepPkt.Tsec
-					Tmsec:			hepPkt.Tmsec
-					ProtoType:		hepPkt.ProtoType
-					NodeID:			hepPkt.NodeID
-					NodePW:			hepPkt.NodePW
-					Payload:		hepPkt.Payload
-					CID:			hepPkt.CID
-					Vlan:			hepPkt.Vlan
-					CseqMethod:		hepPkt.SIP.CseqMethod
-					FirstMethod:	hepPkt.SIP.FirstMethod
-					CallID:			hepPkt.SIP.CallID
-					FromUser:		hepPkt.SIP.FromUser
-					Expires:		hepPkt.SIP.Expires
-					ReasonVal:		hepPkt.SIP.ReasonVal
-					RTPStatVal:		hepPkt.SIP.RTPStatVal
-					ToUser:			hepPkt.SIP.ToUser
+					Version: 		hepPkt.Version,
+					Protocol:		hepPkt.Protocol,
+					SrcIP:			hepPkt.SrcIP,
+					DstIP:			hepPkt.DstIP,
+					SrcPort:		hepPkt.SrcPort,
+					DstPort:		hepPkt.DstPort,
+					Tsec:			hepPkt.Tsec,
+					Tmsec:			hepPkt.Tmsec,
+					ProtoType:		hepPkt.ProtoType,
+					NodeID:			hepPkt.NodeID,
+					NodePW:			hepPkt.NodePW,
+					Payload:		hepPkt.Payload,
+					CID:			hepPkt.CID,
+					Vlan:			hepPkt.Vlan,
+					CseqMethod:		hepPkt.SIP.CseqMethod,
+					FirstMethod:		hepPkt.SIP.FirstMethod,
+					CallID:			hepPkt.SIP.CallID,
+					FromUser:		hepPkt.SIP.FromUser,
+					Expires:		hepPkt.SIP.Expires,
+					ReasonVal:		hepPkt.SIP.ReasonVal,
+					RTPStatVal:		hepPkt.SIP.RTPStatVal,
+					ToUser:			hepPkt.SIP.ToUser,
+					ProtoString:		hepPkt.ProtoString,
+					Timestamp:		string(tStr),
+					HostTag:		hepPkt.HostTag,
+					NodeName:		hepPkt.NodeName,
 				}
 			
-				log.Logf("publishing %+v\n", ev)
-				err := p.Publish(context.Background(), ev)
+				log.Logf("publishing %+v\n", hepPkt.CID)
+				err := h.pub1.Publish(context.Background(), ev)
 				if err != nil {
 					log.Logf("error publishing: %v", err)
 				}
