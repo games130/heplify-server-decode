@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"net"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/games130/cert"

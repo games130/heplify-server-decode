@@ -2,7 +2,6 @@ package input
 
 import (
 	"net"
-	"sync/atomic"
 	"time"
 
 	"github.com/games130/logp"

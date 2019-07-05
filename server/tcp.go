@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"net"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/games130/logp"
