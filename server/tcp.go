@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/negbie/logp"
+	"github.com/games130/logp"
 )
 
 func (h *HEPInput) serveTCP(addr string) {

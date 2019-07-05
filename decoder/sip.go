@@ -3,8 +3,8 @@ package decoder
 import (
 	"errors"
 
-	"github.com/sipcapture/heplify-server/config"
-	"github.com/sipcapture/heplify-server/sipparser"
+	"github.com/games130/heplify-server-decode/config"
+	"github.com/games130/heplify-server-decode/sipparser"
 )
 
 func (h *HEP) parseSIP() error {

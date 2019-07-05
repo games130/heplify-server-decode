@@ -10,9 +10,9 @@ import (
 
 	"github.com/VictoriaMetrics/fastcache"
 	xxhash "github.com/cespare/xxhash/v2"
-	"github.com/negbie/logp"
-	"github.com/sipcapture/heplify-server/config"
-	"github.com/sipcapture/heplify-server/sipparser"
+	"github.com/games130/logp"
+	"github.com/games130/heplify-server-decode/config"
+	"github.com/games130/heplify-server-decode/sipparser"
 )
 
 // The first 4 bytes are the string "HEP3". The next 2 bytes are the length of the

@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/negbie/cert"
-	"github.com/negbie/logp"
+	"github.com/games130/cert"
+	"github.com/games130/logp"
 )
 
 func (h *HEPInput) serveTLS(addr string) {

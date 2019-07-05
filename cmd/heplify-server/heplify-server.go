@@ -2,21 +2,16 @@ package main
 
 import (
 	"fmt"
-	"html/template"
-	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"sync"
 	"syscall"
 
-	_ "net/http/pprof"
-
 	"github.com/koding/multiconfig"
-	"github.com/negbie/logp"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/sipcapture/heplify-server/config"
-	input "github.com/sipcapture/heplify-server/server"
+	"github.com/games130/logp"
+	"github.com/games130/heplify-server-decode/config"
+	input "github.com/games130/heplify-server-decode/server"
 )
 
 type server interface {
@@ -100,41 +95,6 @@ func main() {
 			}(srv)
 		}
 		wg.Wait()
-	}
-
-	if len(config.Setting.ConfigHTTPAddr) > 2 {
-		tmpl := template.Must(template.New("main").Parse(config.WebForm))
-		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != http.MethodPost {
-				tmpl.Execute(w, config.Setting)
-				return
-			}
-
-			cfg, err := config.WebConfig(r)
-			if err != nil {
-				logp.Warn("Failed config reload from %v. %v", r.RemoteAddr, err)
-				tmpl.Execute(w, config.Setting)
-				return
-			}
-			logp.Info("Successfull config reloaded from %v", r.RemoteAddr)
-			endServer()
-			config.Setting = *cfg
-			logp.SetToSyslog(config.Setting.LogSys, "")
-			tmpl.Execute(w, config.Setting)
-			startServer()
-		})
-
-		go http.ListenAndServe(config.Setting.ConfigHTTPAddr, nil)
-	}
-
-	if promAddr := config.Setting.PromAddr; len(promAddr) > 2 {
-		go func() {
-			http.Handle("/metrics", promhttp.Handler())
-			err := http.ListenAndServe(promAddr, nil)
-			if err != nil {
-				logp.Err("%v", err)
-			}
-		}()
 	}
 
 	startServer()
