@@ -1,4 +1,4 @@
-module github.com/sipcapture/heplify-server
+module github.com/games130/heplify-server-decode
 
 go 1.12
 
