@@ -3,7 +3,6 @@ package input
 import (
 	"runtime"
 	"sync"
-	"time"
 	"context"
 
 	proto "github.com/games130/heplify-server-metric/proto"
@@ -117,7 +116,6 @@ func (h *HEPInput) End() {
 }
 
 func (h *HEPInput) hepWorker() {
-	lastWarn := time.Now()
 	msg := h.buffer.Get().([]byte)
 
 	for {
@@ -129,6 +127,9 @@ func (h *HEPInput) hepWorker() {
 			return
 		case msg = <-h.inputCh:
 			hepPkt, err := decoder.DecodeHEP(msg)
+			if err != nil {
+				log.Logf("error decoding: %v", err)
+			}
 
 			if h.usePM {
 				tStr,_ := hepPkt.Timestamp.MarshalText()
