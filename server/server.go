@@ -127,8 +127,11 @@ func (h *HEPInput) hepWorker() {
 			return
 		case msg = <-h.inputCh:
 			hepPkt, err := decoder.DecodeHEP(msg)
+			
 			if err != nil {
 				log.Logf("error decoding: %v", err)
+			} else if hepPkt.ProtoType == 0 {
+				continue
 			}
 
 			if h.usePM {
@@ -162,7 +165,7 @@ func (h *HEPInput) hepWorker() {
 					NodeName:		hepPkt.NodeName,
 				}
 			
-				log.Logf("publishing %+v\n", hepPkt.CID)
+				log.Logf("publishing %s and %s \n", ev.CID, ev.FirstMethod)
 				err := h.pub1.Publish(context.Background(), ev)
 				if err != nil {
 					log.Logf("error publishing: %v", err)
