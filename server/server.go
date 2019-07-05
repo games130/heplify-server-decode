@@ -3,7 +3,6 @@ package input
 import (
 	"runtime"
 	"sync"
-	"sync/atomic"
 	"time"
 	"context"
 
@@ -69,10 +68,7 @@ func NewHEPInput() *HEPInput {
 	h.pub1 = micro.NewPublisher("heplify.server.metric.1", h.service.Client())
 	
 	
-	if len(config.Setting.PromAddr) > 2 {
-		h.usePM = true
-		h.promCh = make(chan *decoder.HEP, 40000)
-	}
+	h.usePM = true
 
 	return h
 }

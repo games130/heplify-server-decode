@@ -94,11 +94,9 @@ func (h *HEPInput) handleTCP(c net.Conn) {
 			n, err := readBytes(buf[:size])
 			if err != nil || n > maxPktLen {
 				logp.Warn("%v, unusal packet size with %d bytes", err, n)
-				atomic.AddUint64(&h.stats.ErrCount, 1)
 				continue
 			}
 			h.inputCh <- buf[:n]
-			atomic.AddUint64(&h.stats.PktCount, 1)
 		}
 	}
 }

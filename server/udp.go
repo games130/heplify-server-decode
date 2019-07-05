@@ -37,10 +37,8 @@ func (h *HEPInput) serveUDP(addr string) {
 			continue
 		} else if n > maxPktLen {
 			logp.Warn("received too big packet with %d bytes", n)
-			atomic.AddUint64(&h.stats.ErrCount, 1)
 			continue
 		}
 		h.inputCh <- buf[:n]
-		atomic.AddUint64(&h.stats.PktCount, 1)
 	}
 }
