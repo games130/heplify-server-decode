@@ -4,6 +4,7 @@ import (
 	"runtime"
 	"sync"
 	"context"
+	"time"
 
 	proto "github.com/games130/heplify-server-metric/proto"
 	"github.com/micro/go-plugins/broker/nats"
@@ -73,7 +74,6 @@ func NewHEPInput() *HEPInput {
 }
 
 func (h *HEPInput) Run() {
-	logp.Info("--------------------------------server---run---------------------------------")
 	for n := 0; n < runtime.NumCPU(); n++ {
 		h.wg.Add(1)
 		go h.hepWorker()
@@ -165,8 +165,9 @@ func (h *HEPInput) hepWorker() {
 					NodeName:		hepPkt.NodeName,
 				}
 			
-				log.Logf("publishing %s and %s \n", ev.CID, ev.FirstMethod)
+				log.Logf("publishing %s and %s at time: %s\n", ev.CID, ev.FirstMethod, time.Now().UnixNano())
 				err := h.pub1.Publish(context.Background(), ev)
+				
 				if err != nil {
 					log.Logf("error publishing: %v", err)
 				}
