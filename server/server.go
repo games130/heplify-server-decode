@@ -165,7 +165,7 @@ func (h *HEPInput) hepWorker() {
 					NodeName:		hepPkt.NodeName,
 				}
 			
-				log.Logf("publishing %s and %s at time: %s\n", ev.CID, ev.FirstMethod, time.Now().UnixNano())
+				//log.Logf("publishing %s and %s at time: %s\n", ev.CID, ev.FirstMethod, time.Now().UnixNano())
 				err := h.pub1.Publish(context.Background(), ev)
 				
 				if err != nil {
