@@ -130,6 +130,7 @@ func (h *HEPInput) hepWorker() {
 			
 			if err != nil {
 				log.Logf("error decoding: %v", err)
+				continue
 			} else if hepPkt.ProtoType == 0 {
 				continue
 			}
