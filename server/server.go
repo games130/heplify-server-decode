@@ -55,7 +55,7 @@ func NewHEPInput() *HEPInput {
 
 
 	b := nats.NewBroker(
-		broker.Addrs("172.17.0.3:4222"),
+		broker.Addrs(config.Setting.BrokerAddr),
 	)
 	// create a service
 	h.service = micro.NewService(
@@ -65,7 +65,7 @@ func NewHEPInput() *HEPInput {
 	// parse command line
 	h.service.Init()
 	// create publisher
-	h.pub1 = micro.NewPublisher("heplify.server.metric.1", h.service.Client())
+	h.pub1 = micro.NewPublisher(config.Setting.BrokerTopic, h.service.Client())
 	
 	
 	h.usePM = true

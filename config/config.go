@@ -13,6 +13,8 @@ type HeplifyServer struct {
 	FilterHost         []string `default:""`
 	AlegIDs            []string `default:""`
 	CustomHeader       []string `default:""`
+	BrokerAddr         string   `default:"127.0.0.1:4222"`
+	BrokerTopic		   string   `default:"heplify.server.metric.1"`
 	LogDbg             string   `default:""`
 	LogLvl             string   `default:"info"`
 	LogStd             bool     `default:"false"`
