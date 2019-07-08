@@ -134,7 +134,7 @@ func (h *HEPInput) hepWorker() {
 				continue
 			}
 
-			if h.usePM {
+			if h.usePM && hepPkt.ProtoType == 1 {
 				tStr,_ := hepPkt.Timestamp.MarshalText()
 				ev := &proto.Event{
 					Version: 		hepPkt.Version,
