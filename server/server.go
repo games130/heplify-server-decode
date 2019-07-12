@@ -5,7 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"context"
-	//"time"
+	"time"
 
 	proto "github.com/games130/heplify-server-metric/proto"
 	"github.com/micro/go-plugins/broker/nats"
@@ -36,31 +36,31 @@ type HEPInput struct {
 type HEPStats struct {
 	HEPCount 		uint64
 	INVITECount		uint64
-	REGISTERCount	uint64
+	REGISTERCount		uint64
 	BYECount		uint64
 	PRACKCount		uint64
-	180Count uint64
-	183Count uint64
-	200Count uint64
-	400Count uint64
-	404Count uint64
-	406Count uint64
-	408Count uint64
-	416Count uint64
-	420Count uint64
-	422Count uint64
-	480Count uint64
-	481Count uint64
-	484Count uint64
-	485Count uint64
-	488Count uint64
-	500Count uint64
-	502Count uint64
-	503Count uint64
-	504Count uint64
-	603Count uint64
-	604Count uint64
-	OtherCount uint64
+	R180Count		uint64
+	R183Count 		uint64
+	R200Count 		uint64
+	R400Count 		uint64
+	R404Count 		uint64
+	R406Count 		uint64
+	R408Count 		uint64
+	R416Count 		uint64
+	R420Count 		uint64
+	R422Count 		uint64
+	R480Count 		uint64
+	R481Count 		uint64
+	R484Count 		uint64
+	R485Count 		uint64
+	R488Count 		uint64
+	R500Count 		uint64
+	R502Count 		uint64
+	R503Count 		uint64
+	R504Count 		uint64
+	R603Count 		uint64
+	R604Count 		uint64
+	OtherCount 		uint64
 }
 
 const maxPktLen = 8192
@@ -77,7 +77,6 @@ func NewHEPInput() *HEPInput {
 		exitedTCP: make(chan bool),
 		exitedTLS: make(chan bool),
 	}
-	SIPMap = make(map[string]int64)
 
 
 	b := nats.NewBroker(
@@ -164,7 +163,7 @@ func (h *HEPInput) hepWorker() {
 			}
 
 			if h.usePM && hepPkt.ProtoType == 1 {
-				statsCount(hepPkt.SIP.FirstMethod)
+				h.statsCount(hepPkt.SIP.FirstMethod)
 				tStr,_ := hepPkt.Timestamp.MarshalText()
 				ev := &proto.Event{
 					Version: 		hepPkt.Version,
@@ -212,27 +211,27 @@ func (h *HEPInput) statsCount(FirstMethod string) {
 		case "REGISTER": atomic.AddUint64(&h.stats.REGISTERCount, 1)
 		case "BYE": atomic.AddUint64(&h.stats.BYECount, 1)
 		case "PRACK": atomic.AddUint64(&h.stats.PRACKCount, 1)
-		case "180": atomic.AddUint64(&h.stats.180Count, 1)
-		case "183": atomic.AddUint64(&h.stats.183Count, 1)
-		case "200": atomic.AddUint64(&h.stats.200Count, 1)
-		case "400": atomic.AddUint64(&h.stats.400Count, 1)
-		case "404": atomic.AddUint64(&h.stats.404Count, 1)
-		case "406": atomic.AddUint64(&h.stats.406Count, 1)
-		case "408": atomic.AddUint64(&h.stats.408Count, 1)
-		case "416": atomic.AddUint64(&h.stats.416Count, 1)
-		case "420": atomic.AddUint64(&h.stats.420Count, 1)
-		case "422": atomic.AddUint64(&h.stats.422Count, 1)
-		case "480": atomic.AddUint64(&h.stats.480Count, 1)
-		case "481": atomic.AddUint64(&h.stats.481Count, 1)
-		case "484": atomic.AddUint64(&h.stats.484Count, 1)
-		case "485": atomic.AddUint64(&h.stats.485Count, 1)
-		case "488": atomic.AddUint64(&h.stats.488Count, 1)
-		case "500": atomic.AddUint64(&h.stats.500Count, 1)
-		case "502": atomic.AddUint64(&h.stats.502Count, 1)
-		case "503": atomic.AddUint64(&h.stats.503Count, 1)
-		case "504": atomic.AddUint64(&h.stats.504Count, 1)
-		case "603": atomic.AddUint64(&h.stats.603Count, 1)
-		case "604": atomic.AddUint64(&h.stats.604Count, 1)
+		case "180": atomic.AddUint64(&h.stats.R180Count, 1)
+		case "183": atomic.AddUint64(&h.stats.R183Count, 1)
+		case "200": atomic.AddUint64(&h.stats.R200Count, 1)
+		case "400": atomic.AddUint64(&h.stats.R400Count, 1)
+		case "404": atomic.AddUint64(&h.stats.R404Count, 1)
+		case "406": atomic.AddUint64(&h.stats.R406Count, 1)
+		case "408": atomic.AddUint64(&h.stats.R408Count, 1)
+		case "416": atomic.AddUint64(&h.stats.R416Count, 1)
+		case "420": atomic.AddUint64(&h.stats.R420Count, 1)
+		case "422": atomic.AddUint64(&h.stats.R422Count, 1)
+		case "480": atomic.AddUint64(&h.stats.R480Count, 1)
+		case "481": atomic.AddUint64(&h.stats.R481Count, 1)
+		case "484": atomic.AddUint64(&h.stats.R484Count, 1)
+		case "485": atomic.AddUint64(&h.stats.R485Count, 1)
+		case "488": atomic.AddUint64(&h.stats.R488Count, 1)
+		case "500": atomic.AddUint64(&h.stats.R500Count, 1)
+		case "502": atomic.AddUint64(&h.stats.R502Count, 1)
+		case "503": atomic.AddUint64(&h.stats.R503Count, 1)
+		case "504": atomic.AddUint64(&h.stats.R504Count, 1)
+		case "603": atomic.AddUint64(&h.stats.R603Count, 1)
+		case "604": atomic.AddUint64(&h.stats.R604Count, 1)
 		default: atomic.AddUint64(&h.stats.OtherCount, 1)
 	}
 }
@@ -244,63 +243,61 @@ func (h *HEPInput) logStats() {
 	for {
 		select {
 		case <-ticker.C:
-			logp.Info("stats since last 5 minutes. HEP: %d, INVITECount: %d, REGISTERCount: %d, BYECount: %d, PRACKCount: %d, 180Count: %d, 183Count: %d, 200Count: %d, 400Count: %d, 404Count: %d, 
-			406Count: %d, 408Count: %d, 416Count: %d, 420Count: %d, 422Count: %d, 480Count: %d, 481Count: %d, 484Count: %d, 485Count: %d, 488Count: %d, 500Count: %d, 502Count: %d",
-			503Count: %d, 504Count: %d, 603Count: %d, 604Count: %d, OtherCount: %d,
+			logp.Info("stats since last 5 minutes. HEP: %d, INVITECount: %d, REGISTERCount: %d, BYECount: %d, PRACKCount: %d, 180Count: %d, 183Count: %d, 200Count: %d, 400Count: %d, 404Count: %d, 406Count: %d, 408Count: %d, 416Count: %d, 420Count: %d, 422Count: %d, 480Count: %d, 481Count: %d, 484Count: %d, 485Count: %d, 488Count: %d, 500Count: %d, 502Count: %d, 503Count: %d, 504Count: %d, 603Count: %d, 604Count: %d, OtherCount: %d",
 				atomic.LoadUint64(&h.stats.HEPCount),
 				atomic.LoadUint64(&h.stats.INVITECount),
 				atomic.LoadUint64(&h.stats.REGISTERCount),
 				atomic.LoadUint64(&h.stats.BYECount),
 				atomic.LoadUint64(&h.stats.PRACKCount),
-				atomic.LoadUint64(&h.stats.180Count),
-				atomic.LoadUint64(&h.stats.183Count),
-				atomic.LoadUint64(&h.stats.200Count),
-				atomic.LoadUint64(&h.stats.400Count),
-				atomic.LoadUint64(&h.stats.404Count),
-				atomic.LoadUint64(&h.stats.406Count),
-				atomic.LoadUint64(&h.stats.408Count),
-				atomic.LoadUint64(&h.stats.416Count),
-				atomic.LoadUint64(&h.stats.420Count),
-				atomic.LoadUint64(&h.stats.422Count),
-				atomic.LoadUint64(&h.stats.480Count),
-				atomic.LoadUint64(&h.stats.481Count),
-				atomic.LoadUint64(&h.stats.484Count),
-				atomic.LoadUint64(&h.stats.485Count),
-				atomic.LoadUint64(&h.stats.488Count),
-				atomic.LoadUint64(&h.stats.500Count),
-				atomic.LoadUint64(&h.stats.502Count),
-				atomic.LoadUint64(&h.stats.503Count),
-				atomic.LoadUint64(&h.stats.504Count),
-				atomic.LoadUint64(&h.stats.603Count),
-				atomic.LoadUint64(&h.stats.604Count),
-				atomic.LoadUint64(&h.stats.OtherCount)
+				atomic.LoadUint64(&h.stats.R180Count),
+				atomic.LoadUint64(&h.stats.R183Count),
+				atomic.LoadUint64(&h.stats.R200Count),
+				atomic.LoadUint64(&h.stats.R400Count),
+				atomic.LoadUint64(&h.stats.R404Count),
+				atomic.LoadUint64(&h.stats.R406Count),
+				atomic.LoadUint64(&h.stats.R408Count),
+				atomic.LoadUint64(&h.stats.R416Count),
+				atomic.LoadUint64(&h.stats.R420Count),
+				atomic.LoadUint64(&h.stats.R422Count),
+				atomic.LoadUint64(&h.stats.R480Count),
+				atomic.LoadUint64(&h.stats.R481Count),
+				atomic.LoadUint64(&h.stats.R484Count),
+				atomic.LoadUint64(&h.stats.R485Count),
+				atomic.LoadUint64(&h.stats.R488Count),
+				atomic.LoadUint64(&h.stats.R500Count),
+				atomic.LoadUint64(&h.stats.R502Count),
+				atomic.LoadUint64(&h.stats.R503Count),
+				atomic.LoadUint64(&h.stats.R504Count),
+				atomic.LoadUint64(&h.stats.R603Count),
+				atomic.LoadUint64(&h.stats.R604Count),
+				atomic.LoadUint64(&h.stats.OtherCount),
 			)
 			atomic.StoreUint64(&h.stats.HEPCount, 0)
 			atomic.StoreUint64(&h.stats.INVITECount, 0)
 			atomic.StoreUint64(&h.stats.REGISTERCount, 0)
 			atomic.StoreUint64(&h.stats.BYECount, 0)
 			atomic.StoreUint64(&h.stats.PRACKCount, 0)
-			atomic.StoreUint64(&h.stats.180Count, 0)
-			atomic.StoreUint64(&h.stats.183Count, 0)
-			atomic.StoreUint64(&h.stats.200Count, 0)
-			atomic.StoreUint64(&h.stats.400Count, 0)
-			atomic.StoreUint64(&h.stats.404Count, 0)
-			atomic.StoreUint64(&h.stats.406Count, 0)
-			atomic.StoreUint64(&h.stats.408Count, 0)
-			atomic.StoreUint64(&h.stats.416Count, 0)
-			atomic.StoreUint64(&h.stats.420Count, 0)
-			atomic.StoreUint64(&h.stats.422Count, 0)
-			atomic.StoreUint64(&h.stats.480Count, 0)
-			atomic.StoreUint64(&h.stats.481Count, 0)
-			atomic.StoreUint64(&h.stats.484Count, 0)
-			atomic.StoreUint64(&h.stats.485Count, 0)
-			atomic.StoreUint64(&h.stats.488Count, 0)
-			atomic.StoreUint64(&h.stats.500Count, 0)
-			atomic.StoreUint64(&h.stats.502Count, 0)
-			atomic.StoreUint64(&h.stats.503Count, 0)
-			atomic.StoreUint64(&h.stats.504Count, 0)
-			atomic.StoreUint64(&h.stats.603Count, 0)
-			atomic.StoreUint64(&h.stats.604Count, 0)
+			atomic.StoreUint64(&h.stats.R180Count, 0)
+			atomic.StoreUint64(&h.stats.R183Count, 0)
+			atomic.StoreUint64(&h.stats.R200Count, 0)
+			atomic.StoreUint64(&h.stats.R400Count, 0)
+			atomic.StoreUint64(&h.stats.R404Count, 0)
+			atomic.StoreUint64(&h.stats.R406Count, 0)
+			atomic.StoreUint64(&h.stats.R408Count, 0)
+			atomic.StoreUint64(&h.stats.R416Count, 0)
+			atomic.StoreUint64(&h.stats.R420Count, 0)
+			atomic.StoreUint64(&h.stats.R422Count, 0)
+			atomic.StoreUint64(&h.stats.R480Count, 0)
+			atomic.StoreUint64(&h.stats.R481Count, 0)
+			atomic.StoreUint64(&h.stats.R484Count, 0)
+			atomic.StoreUint64(&h.stats.R485Count, 0)
+			atomic.StoreUint64(&h.stats.R488Count, 0)
+			atomic.StoreUint64(&h.stats.R500Count, 0)
+			atomic.StoreUint64(&h.stats.R502Count, 0)
+			atomic.StoreUint64(&h.stats.R503Count, 0)
+			atomic.StoreUint64(&h.stats.R504Count, 0)
+			atomic.StoreUint64(&h.stats.R603Count, 0)
+			atomic.StoreUint64(&h.stats.R604Count, 0)
 			atomic.StoreUint64(&h.stats.OtherCount, 0)
 
 		case <-h.quit:
