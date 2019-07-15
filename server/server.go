@@ -29,8 +29,9 @@ type HEPInput struct {
 	quit      chan bool
 	usePM     bool
 	service   micro.Service
-	pub1	  micro.Publisher
+	pub1      micro.Publisher
 	stats     HEPStats
+	
 }
 
 type HEPStats struct {
@@ -99,10 +100,14 @@ func NewHEPInput() *HEPInput {
 }
 
 func (h *HEPInput) Run() {
-	for n := 0; n < runtime.NumCPU(); n++ {
+	logp.Info("creating hepWorker totaling: %s", runtime.NumCPU())
+	/*for n := 0; n < runtime.NumCPU(); n++ {
 		h.wg.Add(1)
 		go h.hepWorker()
-	}
+	}*/
+	
+	h.wg.Add(1)
+	go h.hepWorker()
 
 	logp.Info("start %s with %#v\n", config.Version, config.Setting)
 	go h.logStats()
