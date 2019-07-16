@@ -18,19 +18,20 @@ import (
 )
 
 type HEPInput struct {
-	inputCh   chan []byte
-	wg        *sync.WaitGroup
-	buffer    *sync.Pool
-	exitedTCP chan bool
-	exitedTLS chan bool
-	quitUDP   chan bool
-	quitTCP   chan bool
-	quitTLS   chan bool
-	quit      chan bool
-	usePM     bool
-	service   micro.Service
-	pub1      micro.Publisher
-	stats     HEPStats
+	inputCh       chan []byte
+	wg            *sync.WaitGroup
+	buffer        *sync.Pool
+	exitedTCP     chan bool
+	exitedTLS     chan bool
+	quitUDP       chan bool
+	quitTCP       chan bool
+	quitTLS       chan bool
+	quit          chan bool
+	usePM         bool
+	perMSGDebug   bool
+	service       micro.Service
+	pub1          micro.Publisher
+	stats         HEPStats
 	
 }
 
@@ -95,6 +96,7 @@ func NewHEPInput() *HEPInput {
 	
 	
 	h.usePM = true
+	h.perMSGDebug = config.Setting.PerMSGDebug
 
 	return h
 }
@@ -165,6 +167,10 @@ func (h *HEPInput) hepWorker() {
 				continue
 			} else if hepPkt.ProtoType == 0 {
 				continue
+			}
+			
+			if h.perMSGDebug {
+				logp.Info("perMSGDebug: ,HEPCount,%s, SrcIP,%s, DstIP,%s, CID,%s, FirstMethod,%s, FromUser,%s, ToUser,%s", h.stats.HEPCount, hepPkt.SrcIP, hepPkt.DstIP, hepPkt.SIP.CallID, hepPkt.SIP.FirstMethod, hepPkt.SIP.FromUser, hepPkt.SIP.ToUser)
 			}
 
 			if h.usePM && hepPkt.ProtoType == 1 {

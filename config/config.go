@@ -22,4 +22,5 @@ type HeplifyServer struct {
 	Config             string   `default:"./heplify-server.toml"`
 	ConfigHTTPAddr     string   `default:""`
 	ConfigHTTPPW       string   `default:""`
+	PerMSGDebug        bool     `default:"false"`
 }
