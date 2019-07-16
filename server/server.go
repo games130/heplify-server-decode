@@ -169,11 +169,11 @@ func (h *HEPInput) hepWorker() {
 				continue
 			}
 			
-			if h.perMSGDebug {
-				logp.Info("perMSGDebug: ,HEPCount,%s, SrcIP,%s, DstIP,%s, CID,%s, FirstMethod,%s, FromUser,%s, ToUser,%s", h.stats.HEPCount, hepPkt.SrcIP, hepPkt.DstIP, hepPkt.SIP.CallID, hepPkt.SIP.FirstMethod, hepPkt.SIP.FromUser, hepPkt.SIP.ToUser)
-			}
-
 			if h.usePM && hepPkt.ProtoType == 1 {
+				if h.perMSGDebug {
+					logp.Info("perMSGDebug: ,HEPCount,%s, SrcIP,%s, DstIP,%s, CID,%s, FirstMethod,%s, FromUser,%s, ToUser,%s", h.stats.HEPCount, hepPkt.SrcIP, hepPkt.DstIP, hepPkt.SIP.CallID, hepPkt.SIP.FirstMethod, hepPkt.SIP.FromUser, hepPkt.SIP.ToUser)
+				}
+			
 				h.statsCount(hepPkt.SIP.FirstMethod)
 				tStr,_ := hepPkt.Timestamp.MarshalText()
 				ev := &proto.Event{
