@@ -185,7 +185,7 @@ func (h *HEPInput) hepWorker() {
 					ProtoType:		hepPkt.ProtoType,
 					NodeID:			hepPkt.NodeID,
 					NodePW:			hepPkt.NodePW,
-					Payload:		hepPkt.Payload,
+					Payload:		hepPkt.SIP.Msg,
 					CID:			hepPkt.CID,
 					Vlan:			hepPkt.Vlan,
 					CseqMethod:		hepPkt.SIP.CseqMethod,
