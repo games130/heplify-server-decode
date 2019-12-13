@@ -7,7 +7,7 @@ import (
 	"context"
 	"time"
 
-	proto "github.com/games130/heplify-server-metric/proto"
+	proto "github.com/games130/microProtocSIP"
 	"github.com/micro/go-plugins/broker/nats"
 	"github.com/games130/logp"
 	"github.com/games130/heplify-server-decode/config"
@@ -38,7 +38,7 @@ type HEPInput struct {
 type HEPStats struct {
 	HEPCount 		uint64
 	INVITECount		uint64
-	REGISTERCount		uint64
+	REGISTERCount	uint64
 	BYECount		uint64
 	PRACKCount		uint64
 	R180Count		uint64
@@ -189,17 +189,19 @@ func (h *HEPInput) hepWorker() {
 					CID:			hepPkt.CID,
 					Vlan:			hepPkt.Vlan,
 					CseqMethod:		hepPkt.SIP.CseqMethod,
-					FirstMethod:		hepPkt.SIP.FirstMethod,
+					FirstMethod:	hepPkt.SIP.FirstMethod,
 					CallID:			hepPkt.SIP.CallID,
 					FromUser:		hepPkt.SIP.FromUser,
 					Expires:		hepPkt.SIP.Expires,
 					ReasonVal:		hepPkt.SIP.ReasonVal,
 					RTPStatVal:		hepPkt.SIP.RTPStatVal,
 					ToUser:			hepPkt.SIP.ToUser,
-					ProtoString:		hepPkt.ProtoString,
+					ProtoString:	hepPkt.ProtoString,
 					Timestamp:		string(tStr),
 					HostTag:		hepPkt.HostTag,
 					NodeName:		hepPkt.NodeName,
+					XCallID:		hepPkt.SIP.XCallID,
+					PaiUser:		hepPkt.SIP.PaiUser,
 				}
 			
 				//log.Logf("publishing %s and %s at time: %s\n", ev.CID, ev.FirstMethod, time.Now().UnixNano())
