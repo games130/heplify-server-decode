@@ -8,6 +8,7 @@ import (
 	"time"
 
 	proto "github.com/games130/microProtocSIP"
+	protoRTCP "github.com/games130/microProtocRTCP"
 	"github.com/micro/go-plugins/broker/nats"
 	"github.com/games130/logp"
 	"github.com/games130/heplify-server-decode/config"
@@ -31,6 +32,7 @@ type HEPInput struct {
 	perMSGDebug   bool
 	service       micro.Service
 	pub1          micro.Publisher
+	pubRTCP       micro.Publisher
 	stats         HEPStats
 	
 }
@@ -93,6 +95,7 @@ func NewHEPInput() *HEPInput {
 	h.service.Init()
 	// create publisher
 	h.pub1 = micro.NewPublisher(config.Setting.BrokerTopic, h.service.Client())
+	h.pubRTCP = micro.NewPublisher(config.Setting.BrokerTopic+".RTCP", h.service.Client())
 	
 	
 	h.usePM = true
@@ -166,51 +169,85 @@ func (h *HEPInput) hepWorker() {
 				continue
 			}
 			
-			if h.usePM && hepPkt.ProtoType == 1 {
-				if h.perMSGDebug {
-					logp.Info("perMSGDebug: ,HEPCount,%s, SrcIP,%s, DstIP,%s, CID,%s, FirstMethod,%s, FromUser,%s, ToUser,%s", h.stats.HEPCount, hepPkt.SrcIP, hepPkt.DstIP, hepPkt.SIP.CallID, hepPkt.SIP.FirstMethod, hepPkt.SIP.FromUser, hepPkt.SIP.ToUser)
-				}
-			
-				h.statsCount(hepPkt.SIP.FirstMethod)
-				tStr,_ := hepPkt.Timestamp.MarshalText()
-				ev := &proto.Event{
-					Version: 		hepPkt.Version,
-					Protocol:		hepPkt.Protocol,
-					SrcIP:			hepPkt.SrcIP,
-					DstIP:			hepPkt.DstIP,
-					SrcPort:		hepPkt.SrcPort,
-					DstPort:		hepPkt.DstPort,
-					Tsec:			hepPkt.Tsec,
-					Tmsec:			hepPkt.Tmsec,
-					ProtoType:		hepPkt.ProtoType,
-					NodeID:			hepPkt.NodeID,
-					NodePW:			hepPkt.NodePW,
-					Payload:		hepPkt.SIP.Msg,
-					CID:			hepPkt.CID,
-					Vlan:			hepPkt.Vlan,
-					CseqMethod:		hepPkt.SIP.CseqMethod,
-					FirstMethod:	hepPkt.SIP.FirstMethod,
-					CallID:			hepPkt.SIP.CallID,
-					FromUser:		hepPkt.SIP.FromUser,
-					Expires:		hepPkt.SIP.Expires,
-					ReasonVal:		hepPkt.SIP.ReasonVal,
-					RTPStatVal:		hepPkt.SIP.RTPStatVal,
-					ToUser:			hepPkt.SIP.ToUser,
-					ProtoString:	hepPkt.ProtoString,
-					Timestamp:		string(tStr),
-					HostTag:		hepPkt.HostTag,
-					NodeName:		hepPkt.NodeName,
-					XCallID:		hepPkt.SIP.XCallID,
-					PaiUser:		hepPkt.SIP.PaiUser,
-				}
-			
-				//log.Logf("publishing %s and %s at time: %s\n", ev.CID, ev.FirstMethod, time.Now().UnixNano())
-				err := h.pub1.Publish(context.Background(), ev)
+			if h.usePM{
+				switch hepPkt.ProtoType {
+				case 1:
+					if h.perMSGDebug {
+						logp.Info("perMSGDebug: ,HEPCount,%s, SrcIP,%s, DstIP,%s, CID,%s, FirstMethod,%s, FromUser,%s, ToUser,%s", h.stats.HEPCount, hepPkt.SrcIP, hepPkt.DstIP, hepPkt.SIP.CallID, hepPkt.SIP.FirstMethod, hepPkt.SIP.FromUser, hepPkt.SIP.ToUser)
+					}
 				
-				if err != nil {
-					log.Logf("error publishing: %v", err)
+					h.statsCount(hepPkt.SIP.FirstMethod)
+					tStr,_ := hepPkt.Timestamp.MarshalText()
+					ev := &proto.Event{
+						Version: 		hepPkt.Version,
+						Protocol:		hepPkt.Protocol,
+						SrcIP:			hepPkt.SrcIP,
+						DstIP:			hepPkt.DstIP,
+						SrcPort:		hepPkt.SrcPort,
+						DstPort:		hepPkt.DstPort,
+						Tsec:			hepPkt.Tsec,
+						Tmsec:			hepPkt.Tmsec,
+						ProtoType:		hepPkt.ProtoType,
+						NodeID:			hepPkt.NodeID,
+						NodePW:			hepPkt.NodePW,
+						Payload:		hepPkt.SIP.Msg,
+						CID:			hepPkt.CID,
+						Vlan:			hepPkt.Vlan,
+						CseqMethod:		hepPkt.SIP.CseqMethod,
+						FirstMethod:	hepPkt.SIP.FirstMethod,
+						CallID:			hepPkt.SIP.CallID,
+						FromUser:		hepPkt.SIP.FromUser,
+						Expires:		hepPkt.SIP.Expires,
+						ReasonVal:		hepPkt.SIP.ReasonVal,
+						RTPStatVal:		hepPkt.SIP.RTPStatVal,
+						ToUser:			hepPkt.SIP.ToUser,
+						ProtoString:	hepPkt.ProtoString,
+						Timestamp:		string(tStr),
+						HostTag:		hepPkt.HostTag,
+						NodeName:		hepPkt.NodeName,
+						XCallID:		hepPkt.SIP.XCallID,
+						PaiUser:		hepPkt.SIP.PaiUser,
+					}
+				
+					//log.Logf("publishing %s and %s at time: %s\n", ev.CID, ev.FirstMethod, time.Now().UnixNano())
+					err := h.pub1.Publish(context.Background(), ev)
+					
+					if err != nil {
+						log.Logf("error publishing: %v", err)
+					}
+				case 5:
+					//RTCP
+					tStr,_ := hepPkt.Timestamp.MarshalText()
+					ev := &protoRTCP.RTCPpkt{
+						Version: 		hepPkt.Version,
+						Protocol:		hepPkt.Protocol,
+						SrcIP:			hepPkt.SrcIP,
+						DstIP:			hepPkt.DstIP,
+						SrcPort:		hepPkt.SrcPort,
+						DstPort:		hepPkt.DstPort,
+						Tsec:			hepPkt.Tsec,
+						Tmsec:			hepPkt.Tmsec,
+						ProtoType:		hepPkt.ProtoType,
+						NodeID:			hepPkt.NodeID,
+						NodePW:			hepPkt.NodePW,
+						Payload:		hepPkt.Payload,
+						CID:			hepPkt.CID,
+						Vlan:			hepPkt.Vlan,
+						ProtoString:	hepPkt.ProtoString,
+						Timestamp:		string(tStr),
+						HostTag:		hepPkt.HostTag,
+						NodeName:		hepPkt.NodeName,
+					}
+				
+					//log.Logf("publishing %s and %s at time: %s\n", ev.CID, ev.FirstMethod, time.Now().UnixNano())
+					err := h.pubRTCP.Publish(context.Background(), ev)
+					
+					if err != nil {
+						log.Logf("error publishing: %v", err)
+					}
 				}
 			}
+			
 		}
 	}
 }
